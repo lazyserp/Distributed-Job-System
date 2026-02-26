@@ -5,10 +5,11 @@ import time
 r = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
 def start_worker():
-    print("👷 Worker started. Looking for jobs in Redis...")
+    print("Worker started. Looking for jobs in Redis...")
     while True:
         # brpop returns (queue_name, data)
-        _, job_data_raw = r.brpop("job_queue", timeout=0)
+        # B = Blocking , R = Right Pop
+        queue_name, job_data_raw = r.brpop("job_queue", timeout=0)
         
         job_data = json.loads(job_data_raw)
         job_id = job_data['job_id']
