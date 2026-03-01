@@ -1,29 +1,33 @@
 import redis
-import json
 import time
+import json
+from database import update_job_status # Use the fixed name
 
 r = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
 def start_worker():
     print("Worker started. Looking for jobs in Redis...")
     while True:
-        # brpop returns (queue_name, data)
-        # B = Blocking , R = Right Pop
-        queue_name, job_data_raw = r.brpop("job_queue", timeout=0)
-        
-        job_data = json.loads(job_data_raw)
-        job_id = job_data['job_id']
-        duration = job_data['duration']
+        # Returns a tuple: (queue_name, data)
+        result = r.brpop("job_queue", timeout=0)
+        if result: # handling error for empty tuple
+            _, job_data_raw = result
+            job_data = json.loads(job_data_raw)
 
-        # Update Redis status
-        r.set(job_id, "Processing")
-        print(f"Working on {job_id} for {duration}s")
-        
-        time.sleep(duration)
+            try:           
+                # 1. Update DB to Processing
+                update_job_status(job_data['job_id'], 'Processing')
+                
+                # 2. Do the work
+                time.sleep(job_data['duration'])
+                
+                # 3. Update DB to Completed
+                update_job_status(job_data['job_id'], "Completed")
 
-        # Update Redis status
-        r.set(job_id, "Completed")
-        print(f"Finished {job_id}")
+            except Exception as e:
+                print(f"Error in {job_data['job_id']} : {e}")
+                update_job_status(job_data['job_id'], "Failed")
+        
 
 if __name__ == "__main__":
     start_worker()
