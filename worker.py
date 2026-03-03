@@ -1,33 +1,33 @@
 import redis
 import time
 import json
-from database import update_job_status # Use the fixed name
+import os
+import sqlite3
+from database import update_job_status, DB_NAME
 
-r = redis.Redis(host='localhost', port=6379, decode_responses=True)
+# Read host from environment variable, default to localhost
+redis_host = os.getenv('REDIS_HOST', 'localhost')
+r = redis.Redis(host=redis_host, port=6379, decode_responses=True)
 
 def start_worker():
-    print("Worker started. Looking for jobs in Redis...")
+    
+    print(f"Worker started. Connected to Redis at {redis_host}...")
     while True:
-        # Returns a tuple: (queue_name, data)
         result = r.brpop("job_queue", timeout=0)
-        if result: # handling error for empty tuple
+        if result:
             _, job_data_raw = result
             job_data = json.loads(job_data_raw)
 
             try:           
-                # 1. Update DB to Processing
                 update_job_status(job_data['job_id'], 'Processing')
-                
-                # 2. Do the work
                 time.sleep(job_data['duration'])
-                
-                # 3. Update DB to Completed
                 update_job_status(job_data['job_id'], "Completed")
 
             except Exception as e:
                 print(f"Error in {job_data['job_id']} : {e}")
+                # Add retry logic or simple wait to avoid DB lock
+                time.sleep(0.5) 
                 update_job_status(job_data['job_id'], "Failed")
-        
 
 if __name__ == "__main__":
     start_worker()
