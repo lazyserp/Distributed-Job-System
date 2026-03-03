@@ -16,53 +16,7 @@ A high-performance, fault-tolerant distributed job scheduling and execution syst
 ---
 
 # Architecture
-USER                    API (redis_api.py)          REDIS              WORKER (worker.py)      POSTGRES
-  │                            │                       │                       │                    │
-  │  POST /submit?duration=5   │                       │                       │                    │
-  │───────────────────────────►│                       │                       │                    │
-  │                            │                       │                       │                    │
-  │                            │  INSERT "Pending"     │                       │                    │
-  │                            │───────────────────────────────────────────────────────────────────►│
-  │                            │                       │                       │                    │
-  │                            │  LPUSH "job_queue"    │                       │                    │
-  │                            │──────────────────────►│                       │                    │
-  │                            │                       │                       │                    │
-  │◄─── {"job_id": "abc..."}───│                       │                       │                    │
-  │                            │                       │                       │                    │
-  │                            │                       │    BRPOP (blocking)   │                    │
-  │                            │                       │◄──────────────────────│                    │
-  │                            │                       │                       │                    │
-  │                            │                       │  Returns job data     │                    │
-  │                            │                       │──────────────────────►│                    │
-  │                            │                       │                       │                    │
-  │                            │                       │                       │ UPDATE "Processing"│
-  │                            │                       │                       │───────────────────►│
-  │                            │                       │                       │                    │
-  │                            │                       │                       │      sleep(5)      │
-  │                            │                       │                       │                    │
-  │  GET /status/abc...        │                       │                       │                    │
-  │───────────────────────────►│                       │                       │                    │
-  │                            │                       │                       │                    │
-  │                            │  SELECT status        │                       │                    │
-  │                            │───────────────────────────────────────────────────────────────────►│
-  │                            │                       │                       │                    │
-  │                            │◄── "Processing"───────│                       │                    │
-  │                            │                       │                       │                    │
-  │◄─── {"status": "Processing"}                       │                       │                    │
-  │                            │                       │                       │                    │
-  │                            │                       │                       │ UPDATE "Completed" │
-  │                            │                       │                       │───────────────────►│
-  │                            │                       │                       │                    │
-  │  GET /status/abc...        │                       │                       │                    │
-  │───────────────────────────►│                       │                       │                    │
-  │                            │                       │                       │                    │
-  │                            │  SELECT status        │                       │                    │
-  │                            │───────────────────────────────────────────────────────────────────►│
-  │                            │                       │                       │                    │
-  │                            │◄── "Completed"────────│                       │                    │
-  │                            │                       │                       │                    │
-  │◄─── {"status": "Completed"}                        │                       │                    │
-
+<img width="908" height="820" alt="image" src="https://github.com/user-attachments/assets/22ace767-98bb-4698-9836-2d8d7ebebcc4" />
 
   
 ---
@@ -91,9 +45,9 @@ USER                    API (redis_api.py)          REDIS              WORKER (w
 
 # Tech Stack
 
-- **Language:** Python / Go / Java / Node.js
-- **Storage:** PostgreSQL / MySQL / MongoDB
-- **Message Broker:** Redis / RabbitMQ / Kafka
+- **Language:** Python (FastApi)
+- **Storage:** PostgreSQL 
+- **Message Broker:** Redis 
 - **Containerization:** Docker & Docker Compose
 
 ---
@@ -122,15 +76,12 @@ DB_HOST=localhost
 DB_PORT=5432
 BROKER_URL=redis://localhost:6379
 RETRY_LIMIT=3
-
 ```
 
 #API Usage
 ##Submit a Job
-
-POST /api/jobs
-
 ```bash
+POST /api/jobs
 {
   "name": "process_video",
   "payload": {
@@ -138,7 +89,10 @@ POST /api/jobs
   },
   "priority": "high"
 }
-Check Job Status
+```
+
+##Check Job Status
+```bash
 GET /api/jobs/{job_id}
 {
   "job_id": "abc123",
