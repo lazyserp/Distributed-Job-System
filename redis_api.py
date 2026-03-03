@@ -1,15 +1,13 @@
 from fastapi import FastAPI
-import asyncio
-import redis.asyncio as redis # Use async redis
+import redis.asyncio as redis
 import json
 import uuid
-import sqlite3
 import os
-from database import init_db, create_job_record, DB_NAME
+from database import init_db, create_job_record, get_job_status
 
 app = FastAPI()
 
-# Read host from environment variable
+# Connect to Redis
 redis_host = os.getenv('REDIS_HOST', 'localhost')
 r = redis.Redis(host=redis_host, port=6379, decode_responses=True)
 
@@ -20,16 +18,21 @@ async def startup_event():
 @app.post("/submit")
 async def submit(duration: int):
     job_id = str(uuid.uuid4())
+    
+    # Use the database function
     create_job_record(job_id, duration)
+    
     job_data = json.dumps({"job_id": job_id, "duration": duration})
     await r.lpush("job_queue", job_data)
+    
     return {"job_id": job_id, "status": "Pending"}
 
 @app.get("/status/{job_id}") 
 async def get_status(job_id: str):
-    conn = sqlite3.connect(DB_NAME, check_same_thread=False)
-    c = conn.cursor()
-    c.execute("SELECT status FROM jobs WHERE job_id = ?", (job_id,))
-    result = c.fetchone()
-    conn.close()
-    return {"job_id": job_id, "status": result[0] if result else "Not Found"}
+    # Call the new database function
+    status = get_job_status(job_id)
+    
+    if status:
+        return {"job_id": job_id, "status": status}
+    else:
+        return {"job_id": job_id, "status": "Not Found"}
