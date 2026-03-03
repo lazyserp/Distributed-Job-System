@@ -1,163 +1,147 @@
-Distributed Job System
+# Distributed Job System
 
-A high-performance, fault-tolerant distributed job scheduling and execution system built for scalable asynchronous task processing.
+A high-performance, fault-tolerant distributed job scheduling and execution system designed for scalable asynchronous task processing across multiple worker nodes.
 
-📌 Overview
+---
 
-The Distributed Job System decouples job submission from execution and distributes tasks across multiple worker nodes.
-It is designed for high availability, scalability, and reliability in real-world production systems.
+# Features
 
-✨ Features
+- **Distributed Architecture** – Decouples job submission from execution
+- **Fault Tolerance** – Automatic retry logic and job reassignment
+- **Scalability** – Horizontally scalable worker nodes
+- **Concurrency Control** – Distributed locking prevents duplicate execution
+- **Monitoring** – Real-time job status tracking (Pending, Running, Completed, Failed)
+- **Prioritization** – Supports job priority levels
 
-🏗️ Distributed Architecture — Decouples job submission from execution
+---
 
-🔁 Fault Tolerance — Automatic retries & job reassignment
+# Architecture
+USER                    API (redis_api.py)          REDIS              WORKER (worker.py)      POSTGRES
+  │                            │                       │                       │                    │
+  │  POST /submit?duration=5   │                       │                       │                    │
+  │───────────────────────────►│                       │                       │                    │
+  │                            │                       │                       │                    │
+  │                            │  INSERT "Pending"     │                       │                    │
+  │                            │───────────────────────────────────────────────────────────────────►│
+  │                            │                       │                       │                    │
+  │                            │  LPUSH "job_queue"    │                       │                    │
+  │                            │──────────────────────►│                       │                    │
+  │                            │                       │                       │                    │
+  │◄─── {"job_id": "abc..."}───│                       │                       │                    │
+  │                            │                       │                       │                    │
+  │                            │                       │    BRPOP (blocking)   │                    │
+  │                            │                       │◄──────────────────────│                    │
+  │                            │                       │                       │                    │
+  │                            │                       │  Returns job data     │                    │
+  │                            │                       │──────────────────────►│                    │
+  │                            │                       │                       │                    │
+  │                            │                       │                       │ UPDATE "Processing"│
+  │                            │                       │                       │───────────────────►│
+  │                            │                       │                       │                    │
+  │                            │                       │                       │      sleep(5)      │
+  │                            │                       │                       │                    │
+  │  GET /status/abc...        │                       │                       │                    │
+  │───────────────────────────►│                       │                       │                    │
+  │                            │                       │                       │                    │
+  │                            │  SELECT status        │                       │                    │
+  │                            │───────────────────────────────────────────────────────────────────►│
+  │                            │                       │                       │                    │
+  │                            │◄── "Processing"───────│                       │                    │
+  │                            │                       │                       │                    │
+  │◄─── {"status": "Processing"}                       │                       │                    │
+  │                            │                       │                       │                    │
+  │                            │                       │                       │ UPDATE "Completed" │
+  │                            │                       │                       │───────────────────►│
+  │                            │                       │                       │                    │
+  │  GET /status/abc...        │                       │                       │                    │
+  │───────────────────────────►│                       │                       │                    │
+  │                            │                       │                       │                    │
+  │                            │  SELECT status        │                       │                    │
+  │                            │───────────────────────────────────────────────────────────────────►│
+  │                            │                       │                       │                    │
+  │                            │◄── "Completed"────────│                       │                    │
+  │                            │                       │                       │                    │
+  │◄─── {"status": "Completed"}                        │                       │                    │
 
-📈 Scalability — Horizontally scale worker nodes
 
-🔒 Concurrency Control — Distributed locking prevents duplicate execution
+  
+---
 
-📊 Monitoring — Real-time job status tracking
+# System Components
 
-⚡ Prioritization — High-priority jobs handled first
+## API / Producer
 
-🏛️ System Architecture
-                ┌──────────────────┐
-                │    API / Producer │
-                │  (Job Submission) │
-                └─────────┬────────┘
-                          │
-                          ▼
-                ┌──────────────────┐
-                │   Database /     │
-                │   Message Queue  │
-                └─────────┬────────┘
-                          │
-                          ▼
-                ┌──────────────────┐
-                │ Scheduler /      │
-                │ Master Node      │
-                └─────────┬────────┘
-                          │
-        ┌─────────────────┼─────────────────┐
-        ▼                 ▼                 ▼
- ┌────────────┐   ┌────────────┐   ┌────────────┐
- │  Worker 1  │   │  Worker 2  │   │  Worker N  │
- └────────────┘   └────────────┘   └────────────┘
-🧩 Components
-1️⃣ API / Producer
+- Receives job requests
+- Validates and persists jobs
+- Pushes tasks to the message broker
 
-Accepts job requests
+## Scheduler / Master
 
-Validates and persists jobs
+- Distributes jobs to workers
+- Monitors worker heartbeats
+- Handles retries and failover
 
-Pushes tasks to the message broker
+## Workers
 
-2️⃣ Scheduler / Master
+- Poll for available jobs
+- Execute business logic
+- Report job results
 
-Assigns jobs to workers
+---
 
-Tracks worker heartbeats
+# Tech Stack
 
-Handles retries and failover
+- **Language:** Python / Go / Java / Node.js
+- **Storage:** PostgreSQL / MySQL / MongoDB
+- **Message Broker:** Redis / RabbitMQ / Kafka
+- **Containerization:** Docker & Docker Compose
 
-3️⃣ Workers
+---
 
-Poll for jobs
+# Prerequisites
 
-Execute business logic
+- Python 3.9+ / Node 16+ / Go 1.20+
+- Docker
+- Docker Compose
 
-Report status updates
+---
 
-🛠️ Tech Stack
-Layer	Technology
-Language	Python / Go / Java / Node.js
-Storage	PostgreSQL / MySQL / MongoDB
-Message Broker	Redis / RabbitMQ / Kafka
-Containerization	Docker & Docker Compose
-📋 Prerequisites
+# Getting Started
 
-Python 3.9+ / Node 16+ / Go 1.20+
+## Clone Repository
 
-Docker
+```bash
+>git clone https://github.com/lazyserp/Distributed-Job-System.git
+>cd Distributed-Job-System
 
-Docker Compose
 
-🚦 Getting Started
-1️⃣ Clone the Repository
-git clone https://github.com/lazyserp/Distributed-Job-System.git
-cd Distributed-Job-System
-2️⃣ Configuration
+---
 
-Create a .env file in the root directory:
-
+#Configuration
 DB_HOST=localhost
 DB_PORT=5432
 BROKER_URL=redis://localhost:6379
 RETRY_LIMIT=3
-3️⃣ Run with Docker (Recommended)
-docker-compose up --build
-4️⃣ Manual Setup
 
-Start API:
 
-# Example
-python api/main.py
 
-Start Worker:
+#API Usage
+##Submit a Job
 
-# Example
-python worker/main.py
-📖 API Usage
-🔹 Submit a Job
+>POST /api/jobs
 
-POST /api/jobs
+>{
+>  "name": "process_video",
+>  "payload": {
+>    "file_id": "12345"
+>  },
+>  "priority": "high"
+>}
+>Check Job Status
 
-{
-  "name": "process_video",
-  "payload": {
-    "file_id": "12345"
-  },
-  "priority": "high"
-}
-🔹 Check Job Status
+>GET /api/jobs/{job_id}
 
-GET /api/jobs/{job_id}
-
-Response:
-
-{
-  "job_id": "abc123",
-  "status": "running"
-}
-📊 Job Lifecycle
-Pending → Running → Completed
-              ↓
-            Failed → Retried
-📈 Scaling Workers
-
-Increase workers in Docker Compose:
-
-worker:
-  deploy:
-    replicas: 5
-
-Or manually run multiple worker instances.
-
-🤝 Contributing
-
-Fork the Project
-
-Create your branch
-
-git checkout -b feature/AmazingFeature
-
-Commit your changes
-
-git commit -m "Add AmazingFeature"
-
-Push
-
-git push origin feature/AmazingFeature
-
-Open a Pull Request 🚀
+>{
+>  "job_id": "abc123",
+>  "status": "running"
+>}
