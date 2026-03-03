@@ -1,102 +1,163 @@
 Distributed Job System
-A high-performance, fault-tolerant distributed job scheduling and execution system. This project is designed to handle asynchronous task processing across multiple worker nodes with high availability and scalability.
 
-🚀 Features
-Distributed Architecture: Decouples job submission from job execution.
+A high-performance, fault-tolerant distributed job scheduling and execution system built for scalable asynchronous task processing.
 
-Fault Tolerance: Automatic retry logic and job re-assignment if a worker node fails.
+📌 Overview
 
-Scalability: Easily scale the number of worker nodes to handle increased workloads.
+The Distributed Job System decouples job submission from execution and distributes tasks across multiple worker nodes.
+It is designed for high availability, scalability, and reliability in real-world production systems.
 
-Concurrency Control: Distributed locking mechanism to ensure jobs are not processed multiple times.
+✨ Features
 
-Monitoring: Real-time tracking of job status (Pending, Running, Completed, Failed).
+🏗️ Distributed Architecture — Decouples job submission from execution
 
-Prioritization: Support for job priority levels to ensure critical tasks are handled first.
+🔁 Fault Tolerance — Automatic retries & job reassignment
 
-🏗️ Architecture
-The system consists of three main components:
+📈 Scalability — Horizontally scale worker nodes
 
-API/Producer: Receives job requests and persists them into the database/queue.
+🔒 Concurrency Control — Distributed locking prevents duplicate execution
 
-Scheduler/Master: Orchestrates job distribution, monitors worker health (heartbeats), and manages shards.
+📊 Monitoring — Real-time job status tracking
 
-Workers: Poll for available jobs, execute the business logic, and report results back to the system.
+⚡ Prioritization — High-priority jobs handled first
+
+🏛️ System Architecture
+                ┌──────────────────┐
+                │    API / Producer │
+                │  (Job Submission) │
+                └─────────┬────────┘
+                          │
+                          ▼
+                ┌──────────────────┐
+                │   Database /     │
+                │   Message Queue  │
+                └─────────┬────────┘
+                          │
+                          ▼
+                ┌──────────────────┐
+                │ Scheduler /      │
+                │ Master Node      │
+                └─────────┬────────┘
+                          │
+        ┌─────────────────┼─────────────────┐
+        ▼                 ▼                 ▼
+ ┌────────────┐   ┌────────────┐   ┌────────────┐
+ │  Worker 1  │   │  Worker 2  │   │  Worker N  │
+ └────────────┘   └────────────┘   └────────────┘
+🧩 Components
+1️⃣ API / Producer
+
+Accepts job requests
+
+Validates and persists jobs
+
+Pushes tasks to the message broker
+
+2️⃣ Scheduler / Master
+
+Assigns jobs to workers
+
+Tracks worker heartbeats
+
+Handles retries and failover
+
+3️⃣ Workers
+
+Poll for jobs
+
+Execute business logic
+
+Report status updates
 
 🛠️ Tech Stack
-Language: [e.g., Python / Go / Java / Node.js]
-
-Storage: [e.g., PostgreSQL / MySQL / MongoDB]
-
-Message Broker: [e.g., Redis / RabbitMQ / Kafka]
-
-Containerization: Docker & Docker Compose
-
+Layer	Technology
+Language	Python / Go / Java / Node.js
+Storage	PostgreSQL / MySQL / MongoDB
+Message Broker	Redis / RabbitMQ / Kafka
+Containerization	Docker & Docker Compose
 📋 Prerequisites
-Before running the project, ensure you have the following installed:
 
-[Language Runtime] (e.g., Python 3.9+, Node 16+)
+Python 3.9+ / Node 16+ / Go 1.20+
 
-Docker and Docker Compose
+Docker
 
-[Other dependencies]
+Docker Compose
 
 🚦 Getting Started
-1. Clone the repository
-Bash
+1️⃣ Clone the Repository
 git clone https://github.com/lazyserp/Distributed-Job-System.git
 cd Distributed-Job-System
+2️⃣ Configuration
 
-2. Configuration
-Create a .env file in the root directory and configure your environment variables:
+Create a .env file in the root directory:
 
-Code snippet
 DB_HOST=localhost
 DB_PORT=5432
 BROKER_URL=redis://localhost:6379
 RETRY_LIMIT=3
-
-3. Running with Docker
-The easiest way to get the system up and running is using Docker Compose:
-
-Bash
+3️⃣ Run with Docker (Recommended)
 docker-compose up --build
+4️⃣ Manual Setup
 
-4. Manual Setup
-If you prefer to run components manually:
-Start the API:
+Start API:
 
-Bash
-[Command to start API]
-Start the Worker:
+# Example
+python api/main.py
 
-Bash
-[Command to start Worker]
+Start Worker:
+
+# Example
+python worker/main.py
 📖 API Usage
-Submit a Job
+🔹 Submit a Job
+
 POST /api/jobs
 
-JSON
 {
   "name": "process_video",
-  "payload": { "file_id": "12345" },
+  "payload": {
+    "file_id": "12345"
+  },
   "priority": "high"
 }
-Check Job Status
+🔹 Check Job Status
+
 GET /api/jobs/{job_id}
 
+Response:
+
+{
+  "job_id": "abc123",
+  "status": "running"
+}
+📊 Job Lifecycle
+Pending → Running → Completed
+              ↓
+            Failed → Retried
+📈 Scaling Workers
+
+Increase workers in Docker Compose:
+
+worker:
+  deploy:
+    replicas: 5
+
+Or manually run multiple worker instances.
+
 🤝 Contributing
-Contributions are welcome! Please follow these steps:
 
-Fork the Project.
+Fork the Project
 
-Create your Feature Branch (git checkout -b feature/AmazingFeature).
+Create your branch
 
-Commit your Changes (git commit -m 'Add some AmazingFeature').
+git checkout -b feature/AmazingFeature
 
-Push to the Branch (git push origin feature/AmazingFeature).
+Commit your changes
 
-Open a Pull Request.
+git commit -m "Add AmazingFeature"
 
-📄 License
-Distributed under the MIT License. See LICENSE for more information.
+Push
+
+git push origin feature/AmazingFeature
+
+Open a Pull Request 🚀
