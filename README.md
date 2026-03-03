@@ -106,42 +106,42 @@ USER                    API (redis_api.py)          REDIS              WORKER (w
 
 ---
 
-# Getting Started
 
 ## Clone Repository
 
 ```bash
->git clone https://github.com/lazyserp/Distributed-Job-System.git
->cd Distributed-Job-System
+git clone https://github.com/lazyserp/Distributed-Job-System.git
+cd Distributed-Job-System
 
-
+```
 ---
 
 #Configuration
+```bash
 DB_HOST=localhost
 DB_PORT=5432
 BROKER_URL=redis://localhost:6379
 RETRY_LIMIT=3
 
-
+```
 
 #API Usage
 ##Submit a Job
 
->POST /api/jobs
+POST /api/jobs
 
->{
->  "name": "process_video",
->  "payload": {
->    "file_id": "12345"
->  },
->  "priority": "high"
->}
->Check Job Status
-
->GET /api/jobs/{job_id}
-
->{
->  "job_id": "abc123",
->  "status": "running"
->}
+```bash
+{
+  "name": "process_video",
+  "payload": {
+    "file_id": "12345"
+  },
+  "priority": "high"
+}
+Check Job Status
+GET /api/jobs/{job_id}
+{
+  "job_id": "abc123",
+  "status": "running"
+}
+```
