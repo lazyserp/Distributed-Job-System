@@ -8,7 +8,7 @@ from database import update_job_status
 # Read host from environment variable, default to localhost
 redis_host = os.getenv('REDIS_HOST', 'localhost')
 r = redis.Redis(host=redis_host, port=6379, decode_responses=True)
-WORKER_ID = socket.gethost()
+WORKER_ID = socket.gethostname()
 
 def start_worker():
     
