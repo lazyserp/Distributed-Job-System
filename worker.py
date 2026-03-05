@@ -2,12 +2,13 @@ import redis
 import time
 import json
 import os
-import sqlite3
-from database import update_job_status, DB_NAME
+import socket
+from database import update_job_status
 
 # Read host from environment variable, default to localhost
 redis_host = os.getenv('REDIS_HOST', 'localhost')
 r = redis.Redis(host=redis_host, port=6379, decode_responses=True)
+WORKER_ID = socket.gethost()
 
 def start_worker():
     
@@ -19,13 +20,13 @@ def start_worker():
             job_data = json.loads(job_data_raw)
 
             try:           
-                update_job_status(job_data['job_id'], 'Processing')
+                update_job_status(job_data['job_id'], 'Processing', WORKER_ID)
                 time.sleep(job_data['duration'])
-                update_job_status(job_data['job_id'], "Completed")
+                update_job_status(job_data['job_id'], "Completed",WORKER_ID)
 
             except Exception as e:
                 print(f"Error in {job_data['job_id']} : {e}")
-                # Add retry logic or simple wait to avoid DB lock
+                # retry logic or simple wait to avoid DB lock
                 time.sleep(0.5) 
                 update_job_status(job_data['job_id'], "Failed")
 
