@@ -2,8 +2,7 @@ import psycopg2
 import os
 import time
 
-# FIX: Reading the correct variables from .env
-# We read POSTGRES_DB for the database name, not DB_NAME
+# read POSTGRES_DB for the database name
 DB_NAME = os.getenv("POSTGRES_DB", "jobs_db")
 DB_USER = os.getenv("POSTGRES_USER", "myuser")
 DB_PASS = os.getenv("POSTGRES_PASSWORD", "mypassword")
@@ -30,20 +29,21 @@ def init_db():
                  (job_id TEXT PRIMARY KEY, 
                   duration INTEGER, 
                   status TEXT, 
+                  worker_id TEXT,
                   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     conn.commit()
     conn.close()
     print("Database initialized!")
 
-def update_job_status(job_id, status):
+def update_job_status(job_id, status, worker_id=None):
     conn = get_connection()
     c = conn.cursor()
     # IMPORTANT: Postgres uses %s, not ?
-    c.execute("UPDATE jobs SET status = %s WHERE job_id = %s", (status, job_id))
+    c.execute("UPDATE jobs SET status = %s, worker_id = %s WHERE job_id = %s", (status,worker_id, job_id))
     conn.commit()
     conn.close()
 
-def create_job_record(job_id, duration):
+def create_job_record(job_id, duration,):
     conn = get_connection()
     c = conn.cursor()
     c.execute("INSERT INTO jobs (job_id, duration, status) VALUES (%s, %s, %s)", 
