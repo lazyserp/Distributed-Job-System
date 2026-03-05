@@ -1,22 +1,4 @@
-import time
-from locust import HttpUser, task, between, events
-
-test_start_time = None
-
-@events.test_start.add_listener
-def on_test_start(environment, **kwargs):
-    global test_start_time
-    test_start_time = time.time()
-    print(f"Load test started at : {test_start_time}")
-
-
-@events.test_stop.add_listener
-def on_test_stop(environment, **kwargs):
-    end_time = time.time()
-    total = end_time - test_start_time
-
-    print(f"Test ended at : {end_time}")
-    print(f"Test duration : {total}s")
+from locust import HttpUser, task, between
 
 
 class JobProcessingUser(HttpUser):
