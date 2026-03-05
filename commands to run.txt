@@ -1,0 +1,13 @@
+# TO compose & Run all service in docker image:
+docker compose up --build --scale worker=3 ( for 3 workers)
+
+
+# To see database
+docker exec -it distributedworkers-db-1 psql -U myuser -d jobs_db\
+
+
+# postgres
+\dt = see tables
+\l = see databases
+\c db_name  = connect to db_name
+
