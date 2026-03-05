@@ -27,7 +27,28 @@ services:
     depends_on:
       - redis
       - db  # API waits for DB
+    
+# Locust Master: Hosts the UI and coordinates tests
+  locust-master:
+    image: locustio/locust
+    ports:
+      - "8089:8089" # Web UI
+      # - "5557:5557" # Worker communication port
+    volumes:
+      - ./:/mnt/locust
+    command: -f /mnt/locust/load_test.py --master
 
+  # Locust Worker: Generates the actual traffic
+  locust-worker:
+    image: locustio/locust
+    volumes:
+      - ./:/mnt/locust
+    # --master-host must match the service name above
+    command: -f /mnt/locust/load_test.py --worker --master-host locust-master
+    depends_on:
+      - locust-master
+
+      
   # 4. Worker
   worker:
     build: .
