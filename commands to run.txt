@@ -1,9 +1,15 @@
 # TO compose & Run all service in docker image:
-docker compose up --build --scale worker=3 ( for 3 workers)
+docker compose up --build -d --scale worker=3 --scale locust-worker=2
 
+#basic Run
+docker compose up --build 
 
 # To see database
-docker exec -it distributedworkers-db-1 psql -U myuser -d jobs_db\
+docker exec -it distributedworkers-db-1 psql -U myuser -d jobs_db
+
+#Remove previous volume ( after scheme changes)
+docker compose down -v
+ 
 
 
 # postgres
