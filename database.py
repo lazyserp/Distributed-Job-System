@@ -38,7 +38,6 @@ def init_db():
 def update_job_status(job_id, status, worker_id=None):
     conn = get_connection()
     c = conn.cursor()
-    # IMPORTANT: Postgres uses %s, not ?
     c.execute("UPDATE jobs SET status = %s, worker_id = %s WHERE job_id = %s", (status,worker_id, job_id))
     conn.commit()
     conn.close()
